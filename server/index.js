@@ -17,7 +17,11 @@ function sr(room) {
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  transports: ['websocket', 'polling'],
+});
 
 app.use(express.static(path.join(__dirname, '../public')));
 

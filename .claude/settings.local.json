@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npm install:*)",
       "Bash(node server/index.js)",
-      "Bash(node -e ':*)"
+      "Bash(node -e ':*)",
+      "WebFetch(domain:catchmind-uz5m.onrender.com)"
     ]
   }
 }

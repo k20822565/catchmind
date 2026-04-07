@@ -1,5 +1,5 @@
 /* ── 캐치마인드 클라이언트 ── */
-const socket = io();
+const socket = io(window._socketOptions || {});
 
 // 고정 캔버스 내부 해상도 (모든 클라이언트 동일)
 const CANVAS_W = 1000;

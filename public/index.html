@@ -210,6 +210,10 @@
 <div class="overlay-msg" id="toast"></div>
 
 <script src="/socket.io/socket.io.js"></script>
+<script>
+  // WebSocket 안 되는 환경(회사 방화벽 등)에서 polling으로 자동 fallback
+  window._socketOptions = { transports: ['websocket', 'polling'] };
+</script>
 <script src="game.js"></script>
 </body>
 </html>
