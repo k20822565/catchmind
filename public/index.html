@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>통합업무시스템 v2.1</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- 메뉴바 -->
+<div id="menubar">
+  <span>파일(F)</span><span>편집(E)</span><span>보기(V)</span>
+  <span>삽입(I)</span><span>서식(O)</span><span>도구(T)</span>
+  <span>데이터(D)</span><span>창(W)</span><span>도움말(H)</span>
+  <div id="room-code-display" style="display:none;margin-left:auto;font-size:11px;">
+    세션코드: <strong id="toolbar-code"></strong>
+    <button class="btn" id="btn-copy-toolbar" style="margin-left:6px;height:18px;font-size:10px;">복사</button>
+  </div>
+</div>
+
+<!-- 툴바 -->
+<div id="toolbar">
+  <span style="font-size:11px;color:#666;">통합업무시스템 v2.1</span>
+  <div class="sep"></div>
+  <!-- 드로잉 도구 (게임 중에만 의미 있음) -->
+  <div class="color-palette" id="color-palette"></div>
+  <div class="sep"></div>
+  <div class="brush-sizes" id="brush-sizes">
+    <div class="brush-btn active" data-size="2">ㅡ</div>
+    <div class="brush-btn" data-size="5">━</div>
+    <div class="brush-btn" data-size="11">▬</div>
+  </div>
+  <div class="sep"></div>
+  <button class="btn" id="btn-undo">↩ 취소</button>
+  <button class="btn" id="btn-clear">지우기</button>
+</div>
+
+<!-- 컬럼 헤더 (A B C …) -->
+<div id="col-header">
+  <div class="row-num-placeholder"></div>
+  <div class="col-cells" id="col-cells"></div>
+</div>
+
+<!-- 앱 메인 영역 -->
+<div id="main-row">
+
+  <!-- 행 번호 (1 2 3 …) -->
+  <div id="row-numbers" id="row-numbers"></div>
+
+  <!-- 실제 콘텐츠 -->
+  <div id="app">
+
+    <!-- ── 로비 ── -->
+    <div id="lobby">
+      <div class="lobby-panel">
+        <div class="panel-title">시스템 접속 — 새 세션</div>
+        <div class="panel-body">
+          <div class="field-row">
+            <div class="field-label">사용자명</div>
+            <input type="text" id="nick-input" placeholder="닉네임 (최대 8자)" maxlength="8">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-accent" id="btn-create" style="flex:1;">방 만들기</button>
+          </div>
+        </div>
+      </div>
+      <div class="lobby-or">— 또는 기존 세션 참가 —</div>
+      <div class="lobby-panel">
+        <div class="panel-title">시스템 접속 — 세션 참가</div>
+        <div class="panel-body">
+          <div class="field-row">
+            <div class="field-label">사용자명</div>
+            <input type="text" id="nick-input2" placeholder="닉네임 (최대 8자)" maxlength="8">
+          </div>
+          <div class="field-row">
+            <div class="field-label">세션 코드</div>
+            <input type="text" id="code-input" placeholder="4자리 코드"
+              maxlength="4" style="text-transform:uppercase;letter-spacing:5px;font-size:15px;">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-accent" id="btn-join" style="flex:1;">참가</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 대기실 ── -->
+    <div id="waiting">
+      <div class="waiting-inner">
+        <div class="waiting-left">
+          <div class="section-header">참가자 목록</div>
+          <div style="overflow:auto;flex:1;">
+            <table class="player-table">
+              <thead><tr><th>#</th><th>사용자명</th><th>상태</th></tr></thead>
+              <tbody id="waiting-players"></tbody>
+            </table>
+          </div>
+          <div style="padding:8px;border-top:1px solid var(--border);display:flex;gap:6px;background:var(--bg);">
+            <button class="btn btn-accent" id="btn-start" disabled>게임 시작</button>
+            <button class="btn" id="btn-leave-waiting">나가기</button>
+          </div>
+        </div>
+        <div class="waiting-right">
+          <div class="section-header">세션 설정</div>
+          <div class="settings-body">
+            <div>
+              <label>라운드 수</label>
+              <select id="sel-rounds">
+                <option value="1">1 라운드</option>
+                <option value="2">2 라운드</option>
+                <option value="3" selected>3 라운드</option>
+                <option value="4">4 라운드</option>
+                <option value="5">5 라운드</option>
+              </select>
+            </div>
+            <div>
+              <label>제한시간 (턴당)</label>
+              <select id="sel-time">
+                <option value="60" selected>1분</option>
+                <option value="90">1분 30초</option>
+                <option value="120">2분</option>
+                <option value="180">3분</option>
+              </select>
+            </div>
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.5;">
+              ※ 설정은 방장만 변경 가능
+            </div>
+          </div>
+          <div class="code-display">
+            <div class="field-label">세션 코드</div>
+            <div class="code-box" id="waiting-code">----</div>
+            <button class="btn" id="btn-copy-code" style="width:100%;">코드 복사</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 게임 화면 ── -->
+    <div id="game">
+      <!-- 상태바 -->
+      <div class="game-statusbar">
+        <span class="status-item">라운드 <strong id="st-round">-</strong></span>
+        <span class="status-item">그리는 사람: <strong id="st-drawer">-</strong></span>
+        <span class="status-item">남은 시간: <span class="timer-display" id="st-timer">--:--</span></span>
+        <span class="word-badge hidden" id="word-badge">???</span>
+      </div>
+
+      <div class="game-body">
+        <!-- 캔버스 영역 -->
+        <div class="canvas-area">
+          <!-- 패널 그리드 (JS로 동적 생성) -->
+          <div class="panels-grid" id="panels-grid"></div>
+        </div>
+
+        <!-- 오른쪽 패널 -->
+        <div class="right-panel">
+          <div class="section-header">점수판</div>
+          <div class="score-table-wrap">
+            <table class="player-table">
+              <thead><tr><th>사용자명</th><th>점수</th></tr></thead>
+              <tbody id="score-body"></tbody>
+            </table>
+          </div>
+          <div class="chat-area">
+            <div class="section-header">채팅</div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="answer-area">
+              <label>▶ 정답 입력</label>
+              <div class="answer-row">
+                <input type="text" id="answer-input" placeholder="정답을 입력하세요" autocomplete="off">
+                <button class="btn btn-accent" id="btn-answer">제출</button>
+              </div>
+            </div>
+            <div class="chat-input-area">
+              <div class="chat-input-row">
+                <input type="text" id="chat-input" placeholder="채팅..." autocomplete="off">
+                <button class="btn" id="btn-chat">전송</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 결과 화면 ── -->
+    <div id="result">
+      <div class="result-panel">
+        <div class="panel-title">최종 결과</div>
+        <table class="result-table">
+          <thead><tr><th>순위</th><th>사용자명</th><th>점수</th></tr></thead>
+          <tbody id="result-body"></tbody>
+        </table>
+        <div class="result-actions">
+          <button class="btn" id="btn-leave-result">나가기</button>
+          <button class="btn btn-accent" id="btn-restart" style="display:none;">다시 하기</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- #app -->
+</div><!-- #main-row -->
+
+<!-- 턴 전환 오버레이 -->
+<div id="turn-overlay">
+  <div class="turn-msg" id="turn-msg"></div>
+  <div class="turn-sub" id="turn-sub"></div>
+</div>
+
+<!-- 토스트 -->
+<div class="overlay-msg" id="toast"></div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
