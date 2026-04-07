@@ -20,10 +20,16 @@ const server = http.createServer(app);
 const io = new Server(server, {
   pingTimeout: 60000,
   pingInterval: 25000,
-  transports: ['websocket', 'polling'],
+  cors: { origin: '*' },
 });
 
-app.use(express.static(path.join(__dirname, '../public')));
+const publicPath = path.join(__dirname, '../public');
+app.use(express.static(publicPath));
+
+// 모든 경로에 index.html 제공 (404 방지)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(publicPath, 'index.html'));
+});
 
 io.on('connection', (socket) => {
 
