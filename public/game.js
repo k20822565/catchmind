@@ -133,6 +133,16 @@ function bindWaiting() {
   $('btn-leave-waiting').addEventListener('click', () => location.reload());
   $('sel-rounds').addEventListener('change', sendSettings);
   $('sel-time').addEventListener('change', sendSettings);
+
+  // 대기실 채팅
+  const sendWaitingChat = () => {
+    const msg = $('waiting-chat-input').value.trim();
+    if (!msg || !myRoom) return;
+    socket.emit('chat:message', { code: myRoom.code, nick: myNick, message: msg });
+    $('waiting-chat-input').value = '';
+  };
+  $('btn-waiting-chat').addEventListener('click', sendWaitingChat);
+  $('waiting-chat-input').addEventListener('keydown', e => { if (e.key === 'Enter') sendWaitingChat(); });
 }
 
 function copyCode() {
@@ -237,6 +247,12 @@ function bindGame() {
     saveHistory(socket.id);
     clearCanvasById(socket.id);
     socket.emit('draw:clear', { code: myRoom.code });
+  });
+
+  $('btn-skip').addEventListener('click', () => {
+    if (!isDrawer) return;
+    if (!confirm('이 단어를 스킵하시겠습니까?')) return;
+    socket.emit('turn:skip', { code: myRoom.code });
   });
 
   $('btn-restart').addEventListener('click', () => socket.emit('game:restart', { code: myRoom.code }));
@@ -501,6 +517,7 @@ function bindSocket() {
 
     // 도구 활성화
     setDrawerTools(isDrawer);
+    $('btn-skip').style.display = isDrawer ? '' : 'none';
 
     // 내 캔버스 커서
     const myPc = playerCanvases[socket.id];
@@ -526,13 +543,19 @@ function bindSocket() {
   });
 
   socket.on('answer:correct', ({ nick, word, players }) => {
-    addChat(`<span class="msg-correct">✔ ${esc(nick)}님 정답! [${esc(word)}]</span>`);
+    // 정답자 본인과 드로어만 단어 확인 가능, 나머지는 누가 맞췄는지만 표시
+    const isMine = (nick === myNick);
+    if (isMine || isDrawer) {
+      addChat(`<span class="msg-correct">✔ ${esc(nick)}님 정답! [${esc(word)}]</span>`);
+    } else {
+      addChat(`<span class="msg-correct">✔ ${esc(nick)}님이 정답을 맞췄습니다!</span>`);
+    }
     updateScoreBoard(players);
     // 정답자 패널 표시
     const p = players.find(pl => pl.nick === nick);
     if (p) setPanelStatus(p.id, '정답!', 'correct');
     // 내가 정답 맞춘 경우
-    if (nick === myNick) {
+    if (isMine) {
       $('answer-input').disabled = true;
       $('btn-answer').disabled = true;
     }
@@ -554,7 +577,16 @@ function bindSocket() {
   });
 
   socket.on('chat:message', ({ nick, message }) => {
-    addChat(`<span class="msg-nick">${esc(nick)}</span>: ${esc(message)}`);
+    const line = `<span class="msg-nick">${esc(nick)}</span>: ${esc(message)}`;
+    // 대기실과 게임 채팅창 모두에 표시
+    addChat(line);
+    const wc = $('waiting-chat-messages');
+    if (wc) {
+      const div = document.createElement('div');
+      div.innerHTML = line;
+      wc.appendChild(div);
+      wc.scrollTop = wc.scrollHeight;
+    }
   });
 }
 

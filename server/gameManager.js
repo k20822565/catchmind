@@ -164,8 +164,18 @@ function endGame(code, io) {
   io.to(code).emit('game:end', { players: sorted });
 }
 
+function skipTurn(code, playerId, io) {
+  const room = rooms[code];
+  if (!room || room.state !== 'playing' || room.turnEnding) return false;
+  const drawer = room.players[room.currentDrawerIndex];
+  if (!drawer || drawer.id !== playerId) return false;
+  clearTimeout(room.timer);
+  endTurn(code, io, false);
+  return true;
+}
+
 function getRoom(code) {
   return rooms[code] || null;
 }
 
-module.exports = { createRoom, joinRoom, leaveRoom, startGame, checkAnswer, getRoom };
+module.exports = { createRoom, joinRoom, leaveRoom, startGame, checkAnswer, skipTurn, getRoom };

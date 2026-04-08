@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
-const { createRoom, joinRoom, leaveRoom, startGame, checkAnswer, getRoom } = require('./gameManager');
+const { createRoom, joinRoom, leaveRoom, startGame, checkAnswer, skipTurn, getRoom } = require('./gameManager');
 
 // room 객체에서 timer(Node.js Timeout 객체) 등 직렬화 불가 필드 제거
 function sr(room) {
@@ -81,6 +81,10 @@ io.on('connection', (socket) => {
 
   socket.on('answer:submit', ({ code, answer }) => {
     checkAnswer(code, socket.id, answer, io);
+  });
+
+  socket.on('turn:skip', ({ code }) => {
+    skipTurn(code, socket.id, io);
   });
 
   socket.on('chat:message', ({ code, nick, message }) => {

@@ -33,6 +33,7 @@
   <div class="sep"></div>
   <button class="btn" id="btn-undo">↩ 취소</button>
   <button class="btn" id="btn-clear">지우기</button>
+  <button class="btn" id="btn-skip" style="display:none;color:var(--danger);border-color:var(--danger);">⏭ 스킵</button>
 </div>
 
 <!-- 컬럼 헤더 (A B C …) -->
@@ -89,11 +90,20 @@
       <div class="waiting-inner">
         <div class="waiting-left">
           <div class="section-header">참가자 목록</div>
-          <div style="overflow:auto;flex:1;">
+          <div style="overflow:auto;max-height:160px;border-bottom:1px solid var(--border);">
             <table class="player-table">
               <thead><tr><th>#</th><th>사용자명</th><th>상태</th></tr></thead>
               <tbody id="waiting-players"></tbody>
             </table>
+          </div>
+          <!-- 대기실 채팅 -->
+          <div class="section-header">채팅</div>
+          <div class="chat-messages" id="waiting-chat-messages" style="flex:1;overflow-y:auto;padding:4px 6px;font-size:11px;line-height:1.7;background:var(--bg);"></div>
+          <div class="chat-input-area" style="border-top:1px solid var(--border);">
+            <div class="chat-input-row">
+              <input type="text" id="waiting-chat-input" placeholder="채팅..." autocomplete="off">
+              <button class="btn" id="btn-waiting-chat">전송</button>
+            </div>
           </div>
           <div style="padding:8px;border-top:1px solid var(--border);display:flex;gap:6px;background:var(--bg);">
             <button class="btn btn-accent" id="btn-start" disabled>게임 시작</button>
